@@ -17,6 +17,16 @@ streamlit run app.py
 
 Open http://localhost:8501. Start with the clearly labeled synthetic signal, then upload a real video. Processing runs locally; no video is committed or sent to an external analysis service.
 
+On macOS, cloud-synced Desktop/Documents folders can offload virtual-environment files and stall imports. Keep the environment outside those folders if this happens:
+
+```sh
+python3.12 -m venv /private/tmp/vibrasight-env
+/private/tmp/vibrasight-env/bin/python -m pip install -r requirements.txt
+/private/tmp/vibrasight-env/bin/python -m streamlit run app.py
+```
+
+The temporary environment may need to be recreated after system cleanup. It contains dependencies, not project source or measurement data.
+
 To exercise the video upload workflow before collecting real footage, run `python generate_demo.py` and upload `synthetic_3hz.avi`. Use target `(130, 140, 80, 80)` and reference `(430, 140, 80, 80)` at 30 fps. Expected horizontal frequency: 3 Hz. This rendered video is synthetic evidence only.
 
 ```sh
