@@ -37,6 +37,21 @@ def _features(gray, roi):
     return points
 
 
+def preview_regions(rgb, target, reference):
+    """Validate region geometry and texture, and return a visual selection guide."""
+    tx, ty, tw, th = target
+    rx, ry, rw, rh = reference
+    if max(tx, rx) < min(tx+tw, rx+rw) and max(ty, ry) < min(ty+th, ry+rh):
+        raise ValueError("Target and stationary-reference regions must not overlap.")
+    gray = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
+    counts = [len(_features(gray, roi)) for roi in (target, reference)]
+    preview = rgb.copy()
+    for roi, color in ((target, (40, 220, 120)), (reference, (255, 170, 40))):
+        x, y, w, h = map(int, roi)
+        cv2.rectangle(preview, (x, y), (x+w, y+h), color, 2)
+    return preview, counts
+
+
 def track(path, target, reference, max_frames=1800):
     tx, ty, tw, th = target
     rx, ry, rw, rh = reference

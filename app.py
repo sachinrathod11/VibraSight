@@ -6,13 +6,14 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 from vibrasight.signals import analyze
-from vibrasight.video import first_frame, track
+from vibrasight.video import first_frame, preview_regions, track
+from vibrasight.comparison_ui import show_comparison
 
 st.set_page_config(page_title="VibraSight", page_icon="📷", layout="wide")
 st.title("VibraSight")
 st.caption("Camera vibration feasibility • projected displacement • evidence before diagnosis")
 st.info("Research prototype. Measurements apply only to documented capture conditions. No fault classification or certified accuracy.")
-mode = st.radio("Measurement source", ["Synthetic signal", "Video recording"], horizontal=True)
+mode = st.radio("Measurement source", ["Synthetic signal", "Video recording", "Compare recordings", "Camera vs sensor"], horizontal=True)
 
 
 def show_results(values, fps, label, quality=None):
@@ -65,7 +66,7 @@ if mode == "Synthetic signal":
     rng = np.random.default_rng(42)
     values = np.column_stack([amplitude * np.sin(2*np.pi*frequency*time) + rng.normal(0, noise, len(time)), rng.normal(0, noise, len(time))])
     show_results(values, 30., "Synthetic displacement, 30 samples/s")
-else:
+elif mode == "Video recording":
     st.subheader("Analyze a recording")
     st.write("Use a fixed camera, good lighting, a textured moving target, and a stationary reference in the same scene. Regions are specified in original-image pixels. First version processes up to 1,800 frames.")
     upload = st.file_uploader("Video", type=["mp4", "mov", "avi"], max_upload_size=100)
@@ -85,7 +86,15 @@ else:
                     st.markdown(f"**{name} region**")
                     cols = st.columns(4)
                     regions.append(tuple(int(col.number_input(f"{name} {field}", min_value=0 if field in ("x", "y") else 8, value=value, step=1)) for col, field, value in zip(cols, ["x", "y", "width", "height"], defaults)))
-                if st.button("Track recording", disabled=not confirmed):
+                valid_regions = True
+                try:
+                    selection, counts = preview_regions(frame, *regions)
+                    st.image(selection, caption="Selection preview: green target; orange stationary reference. x increases rightward; y increases downward.")
+                    st.caption(f"Candidate features: target {counts[0]}, reference {counts[1]}. Texture availability is not a measurement-accuracy estimate.")
+                except ValueError as exc:
+                    valid_regions = False
+                    st.warning(str(exc))
+                if st.button("Track recording", disabled=not confirmed or not valid_regions):
                     with st.spinner("Tracking target and reference…"):
                         result = track(path, *regions)
                     st.session_state["tracking"] = (upload.file_id, regions, fps, result)
@@ -101,5 +110,10 @@ else:
             except (ValueError, RuntimeError) as exc:
                 st.error(str(exc))
 
+elif mode == "Compare recordings":
+    show_comparison()
+elif mode == "Camera vs sensor":
+    show_comparison(sensor=True)
+
 with st.expander("Reference sensor and interpretation"):
-    st.write("Planned reference input: CSV with time_s, ax_m_s2, ay_m_s2, az_m_s2. Hardware acquisition and comparison are the next milestone. Compare frequency first: acceleration amplitude and pixel displacement have different units. A stationary reference compensates approximate image translation, not general camera rotation, perspective, or rolling-shutter distortion.")
+    st.write("Use Camera vs sensor to import a CSV with time_s, ax_m_s2, ay_m_s2, az_m_s2. Hardware validation is still required. Compare frequency first: acceleration amplitude and pixel displacement have different units. A stationary reference compensates approximate image translation, not general camera rotation, perspective, or rolling-shutter distortion.")

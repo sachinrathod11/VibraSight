@@ -33,7 +33,7 @@ To exercise the video upload workflow before collecting real footage, run `pytho
 python -m pytest -q
 ```
 
-## First milestone
+## Software capabilities
 
 - Manual target and stationary-reference rectangles in original-image coordinates.
 - Sparse Lucas–Kanade flow with forward/backward consistency checks.
@@ -41,6 +41,12 @@ python -m pytest -q
 - Tracking stops when either region retains fewer than four features or 40% of its initial features.
 - Horizontal/vertical pixel motion, detrended RMS, Hann-windowed displacement PSD and dominant frequency.
 - CSV export and known-signal demonstration.
+- Region preview and first-frame feature counts before tracking.
+- Two-recording optical CSV comparison and MPU6050 reference CSV import.
+- Timestamp validation, disclosed small-jitter resampling and a shared frequency band.
+- Separately normalized spectra, frequency differences, Markdown reports and JSON results.
+
+Use **Compare recordings** or **Camera vs sensor** to try complete labeled synthetic examples, download their CSVs, or upload your own. See [CSV workflow and sensor requirements](docs/csv-workflow.md).
 
 ## Measurement boundaries
 
@@ -50,9 +56,9 @@ The user must verify capture FPS and uniform frame spacing; decoder metadata alo
 
 ## Evidence and next milestones
 
-Automated checks cover noisy known-frequency signals, static input, aliasing, and a rendered video with target motion plus camera translation. These establish software behavior, **not physical accuracy**. No real recording or hardware validation has been collected yet.
+Automated checks cover noisy known-frequency signals, static input, aliasing, rendered video with target motion plus camera translation, mismatched sampling rates, timestamp faults, minor-jitter resampling, shared-band selection and the comparison screens. These establish software behavior, **not physical accuracy**. No real recording or hardware validation has been collected yet.
 
-Next: repeated physical recordings; second-recording comparison; timestamped ESP32-C3/MPU6050 CSV import; measured frequency agreement; a customer pilot proposal. Compare acceleration and optical **frequency** first, not raw amplitudes in incompatible units.
+Next: repeated physical recordings; timestamped ESP32-C3/MPU6050 acquisition; measured frequency agreement and repeatability; a demonstrated customer pilot proposal. CSV import and report generation are implemented, but real-world validation and hardware logging remain outstanding. Compare acceleration and optical **frequency** first, not raw amplitudes in incompatible units.
 
 See [recording protocol](docs/recording-protocol.md) and [pilot hypothesis](docs/pilot-proposal.md).
 
